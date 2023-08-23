@@ -22,6 +22,7 @@ import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
     // todo: check https://spring.io/blog/2022/02/21/spring-security-without-the-websecurityconfigureradapter
 
+
     @Autowired
     UserDetailsService userServiceImpl;
 

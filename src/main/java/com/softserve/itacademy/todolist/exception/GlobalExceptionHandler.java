@@ -21,19 +21,22 @@ import javax.servlet.http.HttpServletRequest;
 public class GlobalExceptionHandler { // consider extending ResponseEntityExceptionHandler
     private Logger logger;
 
-    @ExceptionHandler
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ResponseEntity<?> handleMethodArgumentNotValid(MethodArgumentNotValidException ex) {
         logger.error("ERROR - "+ ex.getMessage());
         return ResponseEntity.badRequest().body(ex.getBindingResult().toString());
     }
 
-    @ExceptionHandler
+    @ExceptionHandler(NullEntityReferenceException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ResponseEntity<?> handleNullEntityReferenceException(NullEntityReferenceException ex) {
         logger.error("ERROR - "+ ex.getMessage());
         return ResponseEntity.badRequest().body(ex.getMessage());
     }
 
-    @ExceptionHandler
+    @ExceptionHandler(EntityNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
     public ResponseEntity<?> handleEntityNotFoundException(EntityNotFoundException ex) {
         logger.error("ERROR - "+ ex.getMessage());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());

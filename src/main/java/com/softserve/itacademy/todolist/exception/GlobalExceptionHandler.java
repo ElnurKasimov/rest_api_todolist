@@ -19,26 +19,22 @@ import javax.servlet.http.HttpServletRequest;
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler { // consider extending ResponseEntityExceptionHandler
-    private Logger logger;
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ResponseEntity<?> handleMethodArgumentNotValid(MethodArgumentNotValidException ex) {
-        logger.error("ERROR - "+ ex.getMessage());
+        log.error("ERROR - "+ ex.getMessage());
         return ResponseEntity.badRequest().body(ex.getBindingResult().toString());
     }
 
     @ExceptionHandler(NullEntityReferenceException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ResponseEntity<?> handleNullEntityReferenceException(NullEntityReferenceException ex) {
-        logger.error("ERROR - "+ ex.getMessage());
+        log.error("ERROR - "+ ex.getMessage());
         return ResponseEntity.badRequest().body(ex.getMessage());
     }
 
     @ExceptionHandler(EntityNotFoundException.class)
-    @ResponseStatus(HttpStatus.NOT_FOUND)
     public ResponseEntity<?> handleEntityNotFoundException(EntityNotFoundException ex) {
-        logger.error("ERROR - "+ ex.getMessage());
+        log.error("ERROR - "+ ex.getMessage());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
     }
 

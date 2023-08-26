@@ -1,6 +1,7 @@
 package com.softserve.itacademy.todolist.exception;
 
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -19,22 +20,22 @@ import javax.servlet.http.HttpServletRequest;
 @RestControllerAdvice
 public class GlobalExceptionHandler { // consider extending ResponseEntityExceptionHandler
 
-    @ExceptionHandler
+    @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<?> handleMethodArgumentNotValid(MethodArgumentNotValidException ex) {
-        // todo
+        log.error("ERROR - "+ ex.getMessage());
         return ResponseEntity.badRequest().body(ex.getBindingResult().toString());
     }
 
-    @ExceptionHandler
+    @ExceptionHandler(NullEntityReferenceException.class)
     public ResponseEntity<?> handleNullEntityReferenceException(NullEntityReferenceException ex) {
-        // todo
+        log.error("ERROR - "+ ex.getMessage());
         return ResponseEntity.badRequest().body(ex.getMessage());
     }
 
-    @ExceptionHandler
+    @ExceptionHandler(EntityNotFoundException.class)
     public ResponseEntity<?> handleEntityNotFoundException(EntityNotFoundException ex) {
-        // todo: add logging
-        return ResponseEntity.notFound().build();
+        log.error("ERROR - "+ ex.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
     }
 
     // todo: add more handlers

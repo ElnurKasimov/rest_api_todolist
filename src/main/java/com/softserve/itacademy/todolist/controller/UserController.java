@@ -1,26 +1,16 @@
 package com.softserve.itacademy.todolist.controller;
 
-import com.softserve.itacademy.todolist.dto.UserRequest;
-import com.softserve.itacademy.todolist.dto.UserResponse;
-import com.softserve.itacademy.todolist.dto.UserTransformer;
-import com.softserve.itacademy.todolist.exception.MethodArgumentNotValidException;
+import com.softserve.itacademy.todolist.dto.*;
 import com.softserve.itacademy.todolist.model.User;
-import com.softserve.itacademy.todolist.service.RoleService;
-import com.softserve.itacademy.todolist.service.UserService;
+import com.softserve.itacademy.todolist.service.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.validation.BindingResult;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import javax.validation.Valid;
-import java.beans.Encoder;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -79,5 +69,4 @@ public class UserController {
         log.info("CONTROLLER DELETE /API/USERS/" + id);
         userService.delete(id);
     }
-
 }

@@ -1,4 +1,4 @@
-package com.softserve.itacademy.todolist.config;
+package com.softserve.itacademy.todolist.security;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

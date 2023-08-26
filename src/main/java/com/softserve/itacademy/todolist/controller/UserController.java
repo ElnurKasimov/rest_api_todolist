@@ -2,6 +2,7 @@ package com.softserve.itacademy.todolist.controller;
 
 import com.softserve.itacademy.todolist.dto.UserRequest;
 import com.softserve.itacademy.todolist.dto.UserResponse;
+import com.softserve.itacademy.todolist.dto.UserTransformer;
 import com.softserve.itacademy.todolist.exception.MethodArgumentNotValidException;
 import com.softserve.itacademy.todolist.model.User;
 import com.softserve.itacademy.todolist.service.RoleService;
@@ -46,15 +47,8 @@ public class UserController {
     @PostMapping("/")
     ResponseEntity<Void> createUser(@RequestBody UserRequest userRequest) {
         log.info("CONTROLLER POST /API/USERS/");
-        System.out.println("userRequest = " + userRequest);
-        User newUser = new User();
-        newUser.setFirstName(userRequest.getFirstName());
-        newUser.setLastName(userRequest.getLastName());
-        newUser.setEmail(userRequest.getEmail());
-        log.info("ENCODED PASSWORD " + passwordEncoder.encode(userRequest.getPassword()));
-        newUser.setPassword(passwordEncoder.encode(userRequest.getPassword()));
+        User newUser = UserTransformer.toEntity(userRequest);
         newUser.setRole(roleService.findByName(userRequest.getRole().toUpperCase()));
-        System.out.println("newUser = " + newUser);
         userService.create(newUser);
     return ResponseEntity.status(HttpStatus.CREATED)
             .header("Location", "/api/users/" + newUser.getId())

@@ -1,26 +1,18 @@
 package com.softserve.itacademy.todolist.controller;
 
-import com.softserve.itacademy.todolist.dto.UserRequest;
-import com.softserve.itacademy.todolist.dto.UserResponse;
-import com.softserve.itacademy.todolist.dto.UserTransformer;
-import com.softserve.itacademy.todolist.exception.MethodArgumentNotValidException;
+import com.softserve.itacademy.todolist.dto.*;
+import com.softserve.itacademy.todolist.model.Priority;
+import com.softserve.itacademy.todolist.model.Task;
 import com.softserve.itacademy.todolist.model.User;
-import com.softserve.itacademy.todolist.service.RoleService;
-import com.softserve.itacademy.todolist.service.UserService;
+import com.softserve.itacademy.todolist.service.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.validation.BindingResult;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import javax.validation.Valid;
-import java.beans.Encoder;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -31,6 +23,9 @@ import java.util.stream.Collectors;
 public class UserController {
     private final UserService userService;
     private final RoleService roleService;
+    private final TaskService taskService;
+    private final ToDoService toDoService;
+    private final StateService stateService;
     private final PasswordEncoder passwordEncoder;
 
     @GetMapping
@@ -80,4 +75,52 @@ public class UserController {
         userService.delete(id);
     }
 
+    // Tasks API
+
+    @GetMapping("/{uId}/todos/{tId}/tasks")
+    @PreAuthorize("hasRole('ADMIN') or principal.id == #uId")
+    List<TaskResponse> getAllTasks(@PathVariable long uId, @PathVariable long tId){
+        return taskService.getByTodoId(tId).stream().map(TaskTransformer::fromEntity).toList();
+    }
+
+    @GetMapping("/{uId}/todos/{tId}/tasks/{id}")
+    @PreAuthorize("hasRole('ADMIN') or principal.id == #uId")
+    TaskResponse getTask(@PathVariable long uId, @PathVariable long tId, @PathVariable long id){
+        return new TaskResponse(taskService.readById(id));
+    }
+
+    @PostMapping("/{uId}/todos/{tId}/tasks")
+    @PreAuthorize("hasRole('ADMIN') or principal.id == #uId")
+    ResponseEntity<Void> createTask(@PathVariable long uId, @PathVariable long tId, @RequestBody TaskRequest taskRequest){
+        log.info("CONTROLLER POST /API/USERS/" + uId + "/TODOS/" + tId + "/TASKS");
+        Task newTask = TaskTransformer.toEntity(taskRequest);
+        newTask.setState(stateService.readById(taskRequest.getStateId()));
+        newTask.setTodo(toDoService.readById(taskRequest.getTodoId()));
+        taskService.create(newTask);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .header("Location", "/api/users/" + uId + "/todos/" + tId + "/tasks/" + newTask.getId())
+                .build();
+    }
+
+    @PutMapping("/{uId}/todos/{tId}/tasks/{id}")
+    @PreAuthorize("hasRole('ADMIN') or principal.id == #uId")
+    ResponseEntity<Void> updateTask(@PathVariable long uId, @PathVariable long tId, @PathVariable long id, @RequestBody TaskRequest taskRequest) {
+        log.info("CONTROLLER PUT /API/USERS/" + uId + "/TODOS/" + tId + "/TASKS/" + id);
+        Task fromDb = taskService.readById(id);
+        fromDb.setName(taskRequest.getName());
+        fromDb.setPriority(Priority.valueOf(taskRequest.getPriority()));
+        fromDb.setState(stateService.readById(taskRequest.getStateId()));
+        taskService.update(fromDb);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .header("Location", "/api/users/" + uId + "/todos/" + tId + "/tasks/" + fromDb.getId())
+                .build();
+    }
+
+    @DeleteMapping("/{uId}/todos/{tId}/tasks/{id}")
+    @PreAuthorize("hasRole('ADMIN') or principal.id == #uId")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    void deleteTask(@PathVariable long uId, @PathVariable long tId, @PathVariable long id) {
+        log.info("CONTROLLER DELETE /API/USERS/" + uId + "/TODOS/" + tId + "/TASKS/" + id);
+        taskService.delete(id);
+    }
 }

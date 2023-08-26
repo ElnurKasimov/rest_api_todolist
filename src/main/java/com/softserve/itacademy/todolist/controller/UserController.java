@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
@@ -48,6 +49,7 @@ public class UserController {
     ResponseEntity<Void> createUser(@RequestBody UserRequest userRequest) {
         log.info("CONTROLLER POST /API/USERS/");
         User newUser = UserTransformer.toEntity(userRequest);
+        newUser.setPassword(passwordEncoder.encode(userRequest.getPassword()));
         newUser.setRole(roleService.findByName(userRequest.getRole().toUpperCase()));
         userService.create(newUser);
     return ResponseEntity.status(HttpStatus.CREATED)
@@ -56,6 +58,7 @@ public class UserController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN') or principal.id == #id")
     ResponseEntity<Void>  updateUser(@PathVariable long id, @RequestBody UserRequest userRequest) {
         log.info("CONTROLLER PUT /API/USERS/" + id);
         User fromDb = userService.readById(id);
@@ -70,6 +73,7 @@ public class UserController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN') or principal.id == #id")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     void deleteUser(@PathVariable long id) {
         log.info("CONTROLLER DELETE /API/USERS/" + id);

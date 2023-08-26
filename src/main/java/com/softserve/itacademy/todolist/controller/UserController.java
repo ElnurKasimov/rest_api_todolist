@@ -78,19 +78,19 @@ public class UserController {
     // Tasks API
 
     @GetMapping("/{uId}/todos/{tId}/tasks")
-    @PreAuthorize("hasRole('ADMIN') or principal.id == #uId")
+    @PreAuthorize("hasRole('ADMIN') or principal.id == #uId and @task.ownerOrCollaborator(principal, #tId)")
     List<TaskResponse> getAllTasks(@PathVariable long uId, @PathVariable long tId){
         return taskService.getByTodoId(tId).stream().map(TaskTransformer::fromEntity).toList();
     }
 
     @GetMapping("/{uId}/todos/{tId}/tasks/{id}")
-    @PreAuthorize("hasRole('ADMIN') or principal.id == #uId")
+    @PreAuthorize("hasRole('ADMIN') or principal.id == #uId and @task.ownerOrCollaborator(principal, #tId)")
     TaskResponse getTask(@PathVariable long uId, @PathVariable long tId, @PathVariable long id){
         return new TaskResponse(taskService.readById(id));
     }
 
     @PostMapping("/{uId}/todos/{tId}/tasks")
-    @PreAuthorize("hasRole('ADMIN') or principal.id == #uId")
+    @PreAuthorize("hasRole('ADMIN') or principal.id == #uId and @task.ownerOrCollaborator(principal, #tId)")
     ResponseEntity<Void> createTask(@PathVariable long uId, @PathVariable long tId, @RequestBody TaskRequest taskRequest){
         log.info("CONTROLLER POST /API/USERS/" + uId + "/TODOS/" + tId + "/TASKS");
         Task newTask = TaskTransformer.toEntity(taskRequest);
@@ -103,12 +103,14 @@ public class UserController {
     }
 
     @PutMapping("/{uId}/todos/{tId}/tasks/{id}")
-    @PreAuthorize("hasRole('ADMIN') or principal.id == #uId")
+    @PreAuthorize("hasRole('ADMIN') or principal.id == #uId and @task.ownerOrCollaborator(principal, #tId)")
     ResponseEntity<Void> updateTask(@PathVariable long uId, @PathVariable long tId, @PathVariable long id, @RequestBody TaskRequest taskRequest) {
         log.info("CONTROLLER PUT /API/USERS/" + uId + "/TODOS/" + tId + "/TASKS/" + id);
         Task fromDb = taskService.readById(id);
-        fromDb.setName(taskRequest.getName());
-        fromDb.setPriority(Priority.valueOf(taskRequest.getPriority()));
+        if (toDoService.readById(tId).getOwner().getId() == uId) {
+            fromDb.setName(taskRequest.getName());
+            fromDb.setPriority(Priority.valueOf(taskRequest.getPriority()));
+        }
         fromDb.setState(stateService.readById(taskRequest.getStateId()));
         taskService.update(fromDb);
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -117,7 +119,7 @@ public class UserController {
     }
 
     @DeleteMapping("/{uId}/todos/{tId}/tasks/{id}")
-    @PreAuthorize("hasRole('ADMIN') or principal.id == #uId")
+    @PreAuthorize("hasRole('ADMIN') or principal.id == #uId and @task.ownerOrCollaborator(principal, #tId)")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     void deleteTask(@PathVariable long uId, @PathVariable long tId, @PathVariable long id) {
         log.info("CONTROLLER DELETE /API/USERS/" + uId + "/TODOS/" + tId + "/TASKS/" + id);
